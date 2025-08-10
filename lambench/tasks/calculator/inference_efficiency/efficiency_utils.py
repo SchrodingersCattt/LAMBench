@@ -2,7 +2,9 @@ from ase.atoms import Atoms
 from lambench.models.ase_models import ASEModel
 import numpy as np
 import math
+import logging
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 def get_efv(atoms: Atoms) -> tuple[float, np.ndarray, np.ndarray]:
     """

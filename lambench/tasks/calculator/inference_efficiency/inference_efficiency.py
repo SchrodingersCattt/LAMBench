@@ -16,10 +16,11 @@ logging.basicConfig(
 
 
 def run_inference(
-    model: ASEModel, test_data: Path, warmup_ratio: float, natoms_upper_limit: int
-) -> dict[str, dict[str, float]]:
+    model: ASEModel, test_data: Path, warmup_ratio: float, natoms_upper_limit: int = 1000
+) -> dict[str, dict[str, float | list[float]]]:
     """
-    Inference for all trajectories, return average time and success rate for each system.
+    Inference for all trajectories, return average time, standard deviation, success rate,
+    and the full efficiency array for each system.
     """
     results = {}
     trajs = list(test_data.rglob("*.traj"))
@@ -32,20 +33,25 @@ def run_inference(
             average_time = system_result["average_time"]
             std_time = system_result["std_time"]
             success_rate = system_result["success_rate"]
+            efficiencies = system_result["efficiencies"]
             results[system_name] = {
                 "average_time": average_time,
                 "std_time": std_time,
                 "success_rate": success_rate,
+                "efficiencies": efficiencies,
             }
             logging.info(
-                f"Inference completed for system {system_name} with average time {average_time} s and success rate {success_rate:.2f}%"
+                f"Inference completed for system {system_name} with average time {average_time} µs/atom, "
+                f"standard deviation {std_time} and success rate {success_rate:.2f}%"
             )
         except Exception as e:
-            logging.error(f"Error in inference for system {system_name}: {e}")
+            import traceback
+            logging.error(f"Error in inference for system {system_name}: {traceback.format_exc()}")
             results[system_name] = {
                 "average_time": None,
                 "std_time": None,
                 "success_rate": 0.0,
+                "efficiencies": None,
             }
     return results
 
@@ -120,4 +126,5 @@ def run_one_inference(
         "average_time": average_efficiency,
         "std_time": std_efficiency,
         "success_rate": success_rate,
+        "efficiencies": efficiency,
     }
