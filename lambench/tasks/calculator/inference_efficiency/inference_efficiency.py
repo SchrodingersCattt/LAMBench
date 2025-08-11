@@ -77,7 +77,13 @@ def run_one_inference(
         max_natoms = binary_search_max_natoms(model, atoms, natoms_upper_limit)
         # on-the-fly expand atoms
         scaling_factor = np.int32(np.floor(max_natoms / len(atoms)))
-        a, b, c = find_even_factors(scaling_factor)  # a,b,c is in ascending order
+        try:
+            a, b, c = find_even_factors(scaling_factor)  # a,b,c is in ascending order
+        except Exception as e:
+            logging.error(f"Error in find_even_factors for {str(atoms.symbols)} with scaling_factor={scaling_factor}: {e}")
+            # Return the original number of atoms that caused the error
+            logging.info(f"Original atom count that caused the error: {len(atoms)}")
+            continue
 
         cell_length = atoms.get_cell_lengths_and_angles()[:3]
         scaling_index = np.argsort(
